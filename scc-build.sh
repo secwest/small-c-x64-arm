@@ -10,6 +10,12 @@ fi
 SOURCE=$1
 OUTPUT=${2:-${SOURCE%.c}}
 
+# Check if source file exists
+if [ ! -f "$SOURCE" ]; then
+    echo "Error: Source file '$SOURCE' not found"
+    exit 1
+fi
+
 # Detect OS and architecture
 OS=$(uname -s | tr '[:upper:]' '[:lower:]')
 ARCH=$(uname -m)
@@ -39,7 +45,7 @@ case $OS in
     mingw*|cygwin*|msys*)
         OS="windows"
         SYSCALL_OBJ="syscall_win_${ARCH}.o"
-        LD_FLAGS="-lkernel32"
+        LD_FLAGS="-lkernel32 -luser32"
         ;;
     *)
         echo "Unsupported OS: $OS"
@@ -49,20 +55,26 @@ esac
 
 echo "Building $SOURCE for $OS/$ARCH..."
 
+# Check if compiler exists
+if [ ! -f scc ]; then
+    echo "Error: scc compiler not found. Run 'make' first."
+    exit 1
+fi
+
 # Check if runtime files exist
 if [ ! -f runtime.o ]; then
     echo "Error: runtime.o not found. Run 'make' first."
     exit 1
 fi
 
-if [ ! -f $SYSCALL_OBJ ]; then
+if [ ! -f "$SYSCALL_OBJ" ]; then
     echo "Error: $SYSCALL_OBJ not found. Run 'make' first."
     exit 1
 fi
 
 # Compile the source file
 echo "Compiling $SOURCE..."
-./scc $SCC_ARCH $SOURCE > ${OUTPUT}.s
+./scc $SCC_ARCH "$SOURCE" > "${OUTPUT}.s"
 if [ $? -ne 0 ]; then
     echo "Compilation failed"
     exit 1
@@ -78,7 +90,7 @@ fi
 
 # Link
 echo "Linking..."
-ld $LD_FLAGS $SYSCALL_OBJ runtime.o ${OUTPUT}.o -o $OUTPUT
+ld $LD_FLAGS $SYSCALL_OBJ runtime.o ${OUTPUT}.o -o "$OUTPUT"
 if [ $? -ne 0 ]; then
     echo "Linking failed"
     exit 1
@@ -90,4 +102,4 @@ rm -f ${OUTPUT}.s ${OUTPUT}.o
 echo "Build successful: $OUTPUT"
 
 # Make executable
-chmod +x $OUTPUT
+chmod +x "$OUTPUT"
