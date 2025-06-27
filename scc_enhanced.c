@@ -68,14 +68,14 @@ struct function {
 };
 
 /* Global state */
-char line[LINESIZE];
-char *lptr;
+char line[LINESIZE] = {0};
+char *lptr = line;
 int lineno = 1;
-int token;
-int tokval;
-char tokstr[NAMESIZE];
-FILE *input;
-char *filename;
+int token = T_EOF;
+int tokval = 0;
+char tokstr[NAMESIZE] = {0};
+FILE *input = NULL;
+char *filename = NULL;
 
 /* Symbol tables */
 struct symbol globals[MAXGLOBALS];
@@ -137,12 +137,15 @@ void emit_load_param(int offset);
 void emit_store_local(int offset);
 void emit_load_local(int offset);
 
-/* Enhanced error reporting */
+/* Error handling with cleanup */
 void error(char *msg) {
     fprintf(stderr, "%s:%d: Error: %s\n", filename, lineno, msg);
     if (*lptr) {
         fprintf(stderr, "  Near: %.20s...\n", lptr);
     }
+    
+    /* Clean up and exit */
+    if (input) fclose(input);
     exit(1);
 }
 
@@ -262,6 +265,7 @@ void skip_comment(void) {
             lptr++;
         }
         if (*lptr) lptr += 2;
+        else error("Unterminated comment");
     }
 }
 
@@ -328,7 +332,17 @@ int gettoken(void) {
     if (isdigit(*lptr)) {
         tokval = 0;
         while (isdigit(*lptr)) {
-            tokval = tokval * 10 + (*lptr++ - '0');
+            int digit = *lptr - '0';
+            /* Check for overflow */
+            if (tokval > (INT_MAX - digit) / 10) {
+                error("Integer constant too large");
+                tokval = INT_MAX;
+                /* Skip remaining digits */
+                while (isdigit(*lptr)) lptr++;
+                break;
+            }
+            tokval = tokval * 10 + digit;
+            lptr++;
         }
         return T_NUMBER;
     }
@@ -336,10 +350,13 @@ int gettoken(void) {
     /* Identifiers and keywords */
     if (isalpha(*lptr) || *lptr == '_') {
         char *p = tokstr;
+        int len = 0;
+        while ((isalnum(*lptr) || *lptr == '_') && len < NAMESIZE - 1) {
+            *p++ = *lptr++;
+            len++;
+        }
+        /* Skip remaining characters if identifier is too long */
         while (isalnum(*lptr) || *lptr == '_') {
-            if (p - tokstr < NAMESIZE - 1) {
-                *p++ = *lptr;
-            }
             lptr++;
         }
         *p = '\0';
@@ -361,9 +378,14 @@ int gettoken(void) {
     if (*lptr == '"') {
         lptr++;
         char *p = tokstr;
-        while (*lptr && *lptr != '"') {
+        int len = 0;
+        while (*lptr && *lptr != '"' && len < NAMESIZE - 1) {
             if (*lptr == '\\') {
                 lptr++;
+                if (!*lptr) {
+                    error("Unterminated string literal");
+                    return T_EOF;
+                }
                 switch (*lptr) {
                     case 'n': *p++ = '\n'; break;
                     case 't': *p++ = '\t'; break;
@@ -372,17 +394,30 @@ int gettoken(void) {
                     case '\\': *p++ = '\\'; break;
                     case '"': *p++ = '"'; break;
                     case '0': *p++ = '\0'; break;
-                    default: *p++ = *lptr;
+                    default: 
+                        warning("Unknown escape sequence");
+                        *p++ = *lptr;
                 }
                 lptr++;
+                len++;
             } else {
                 if (*lptr == '\n') lineno++;
                 *p++ = *lptr++;
+                len++;
             }
         }
         *p = '\0';
-        if (*lptr == '"') lptr++;
-        else error("Unterminated string literal");
+        
+        if (*lptr == '"') {
+            lptr++;
+        } else {
+            error("Unterminated string literal");
+        }
+        
+        if (len >= NAMESIZE - 1) {
+            warning("String literal truncated");
+        }
+        
         return T_STRING;
     }
     
@@ -393,9 +428,11 @@ int gettoken(void) {
 /* Symbol table */
 struct symbol *lookup(char *name) {
     int i;
+    /* Check locals first */
     for (i = 0; i < nlocals; i++) {
         if (!strcmp(locals[i].name, name)) return &locals[i];
     }
+    /* Then check globals */
     for (i = 0; i < nglobals; i++) {
         if (!strcmp(globals[i].name, name)) return &globals[i];
     }
@@ -404,6 +441,13 @@ struct symbol *lookup(char *name) {
 
 struct symbol *add_symbol(char *name, int type, int size) {
     struct symbol *sym;
+    
+    /* Check for duplicate symbol */
+    if (nlocals > 0 && lookup(name) != NULL) {
+        error("Duplicate symbol definition");
+        return NULL;
+    }
+    
     if (nlocals > 0 || param_offset < 16) {
         if (nlocals >= MAXLOCALS) error("Too many local variables");
         sym = &locals[nlocals++];
@@ -414,7 +458,8 @@ struct symbol *add_symbol(char *name, int type, int size) {
             param_offset += 8;
         } else {
             /* Local variable */
-            sp -= (type < 2 ? 8 : 8) * (size > 0 ? size : 1);
+            int alloc_size = (type < 2 ? 8 : 8) * (size > 0 ? size : 1);
+            sp -= alloc_size;
             sym->offset = sp;
             sym->isparam = 0;
         }
@@ -423,6 +468,11 @@ struct symbol *add_symbol(char *name, int type, int size) {
         sym = &globals[nglobals++];
         sym->offset = lab++;
         sym->isparam = 0;
+    }
+    
+    if (strlen(name) >= NAMESIZE) {
+        warning("Symbol name truncated");
+        name[NAMESIZE-1] = '\0';
     }
     strcpy(sym->name, name);
     sym->type = type;
@@ -442,8 +492,18 @@ struct function *lookup_func(char *name) {
 
 struct function *add_function(char *name) {
     struct function *func;
+    
+    /* Check if function already exists */
+    func = lookup_func(name);
+    if (func) return func;
+    
     if (nfuncs >= MAXFUNCS) error("Too many functions");
     func = &functions[nfuncs++];
+    
+    if (strlen(name) >= NAMESIZE) {
+        warning("Function name truncated");
+        name[NAMESIZE-1] = '\0';
+    }
     strcpy(func->name, name);
     func->defined = 0;
     func->nparams = 0;
@@ -453,6 +513,7 @@ struct function *add_function(char *name) {
 /* Parser */
 void program(void) {
     lptr = line;
+    line[0] = '\0';
     token = gettoken();
     
     while (token != T_EOF) {
@@ -462,7 +523,16 @@ void program(void) {
             token = gettoken();
         }
         
-        if (token != T_IDENT) error("Expected identifier");
+        if (token != T_IDENT) {
+            error("Expected identifier");
+            /* Skip to next semicolon or EOF */
+            while (token != ';' && token != T_EOF) {
+                token = gettoken();
+            }
+            if (token == ';') token = gettoken();
+            continue;
+        }
+        
         char name[NAMESIZE];
         strcpy(name, tokstr);
         token = gettoken();
@@ -489,6 +559,10 @@ void program(void) {
 void global_declaration(int type) {
     /* Global variable already parsed */
     char name[NAMESIZE];
+    if (!tokstr) {
+        error("Internal error: null token string");
+        return;
+    }
     strcpy(name, tokstr);
     
     int size = 0;
@@ -496,6 +570,14 @@ void global_declaration(int type) {
         token = gettoken();
         if (token != T_NUMBER) error("Expected array size");
         size = tokval;
+        if (size <= 0) {
+            error("Array size must be positive");
+            size = 1;
+        }
+        if (size > 65536) {
+            error("Array size too large");
+            size = 65536;
+        }
         token = gettoken();
         if (token != ']') error("Expected ]");
         token = gettoken();
@@ -541,6 +623,7 @@ void global_declaration(int type) {
 
 void parameter_list(void) {
     struct function *func = lookup_func(curfunc);
+    int param_count = 0;
     
     while (token != ')') {
         int type = T_INT;
@@ -550,12 +633,22 @@ void parameter_list(void) {
         }
         
         if (token != T_IDENT) error("Expected parameter name");
+        
+        if (param_count >= MAXARGS) {
+            error("Too many parameters");
+            /* Skip remaining parameters */
+            while (token != ')' && token != T_EOF) {
+                token = gettoken();
+            }
+            break;
+        }
+        
         add_symbol(tokstr, type == T_CHAR ? 1 : 0, 0);
         
         if (func) {
-            if (func->nparams >= MAXARGS) error("Too many parameters");
-            func->param_types[func->nparams++] = type;
+            func->param_types[param_count] = type;
         }
+        param_count++;
         
         token = gettoken();
         if (token == ',') {
@@ -563,6 +656,10 @@ void parameter_list(void) {
         } else if (token != ')') {
             error("Expected , or )");
         }
+    }
+    
+    if (func) {
+        func->nparams = param_count;
     }
 }
 
@@ -617,6 +714,14 @@ void function(int type) {
                 token = gettoken();
                 if (token != T_NUMBER) error("Expected array size");
                 size = tokval;
+                if (size <= 0) {
+                    error("Array size must be positive");
+                    size = 1;
+                }
+                if (size > 65536) {
+                    error("Array size too large");
+                    size = 65536;
+                }
                 token = gettoken();
                 if (token != ']') error("Expected ]");
                 token = gettoken();
@@ -673,13 +778,23 @@ void function(int type) {
 void statement(void) {
     int lab1, lab2, lab3;
     
+    /* Check for EOF to prevent infinite loops */
+    if (token == T_EOF) {
+        error("Unexpected end of file");
+        return;
+    }
+    
     switch (token) {
         case '{':
             token = gettoken();
-            while (token != '}') {
+            while (token != '}' && token != T_EOF) {
                 statement();
             }
-            token = gettoken();
+            if (token == '}') {
+                token = gettoken();
+            } else {
+                error("Expected }");
+            }
             break;
             
         case T_IF:
@@ -711,6 +826,15 @@ void statement(void) {
             if (token != '(') error("Expected (");
             token = gettoken();
             
+            if (wsp >= MAXWHILE) {
+                error("Too many nested loops");
+                /* Skip the while statement */
+                while (token != '}' && token != T_EOF) {
+                    token = gettoken();
+                }
+                break;
+            }
+            
             lab1 = lab++;
             lab2 = lab++;
             breaklab[wsp] = lab2;
@@ -734,6 +858,15 @@ void statement(void) {
             token = gettoken();
             if (token != '(') error("Expected (");
             token = gettoken();
+            
+            if (wsp >= MAXWHILE) {
+                error("Too many nested loops");
+                /* Skip the for statement */
+                while (token != '}' && token != T_EOF) {
+                    token = gettoken();
+                }
+                break;
+            }
             
             /* Initialization */
             if (token != ';') {
@@ -1342,7 +1475,15 @@ void postfix(void) {
                 
                 /* Evaluate arguments */
                 int arg_count = 0;
-                while (token != ')') {
+                while (token != ')' && token != T_EOF) {
+                    if (arg_count >= MAXARGS) {
+                        error("Too many function arguments");
+                        /* Skip remaining arguments */
+                        while (token != ')' && token != T_EOF) {
+                            token = gettoken();
+                        }
+                        break;
+                    }
                     expression();
                     push();
                     arg_count++;
@@ -1350,6 +1491,7 @@ void postfix(void) {
                         token = gettoken();
                     } else if (token != ')') {
                         error("Expected , or )");
+                        break;
                     }
                 }
                 
@@ -1500,7 +1642,16 @@ int main(int argc, char **argv) {
             target = TARGET_ARM64;
         } else if (!strcmp(argv[i], "-x64")) {
             target = TARGET_X64;
+        } else if (argv[i][0] == '-') {
+            fprintf(stderr, "Unknown option: %s\n", argv[i]);
+            fprintf(stderr, "Usage: %s [-arm64|-x64] source.c\n", argv[0]);
+            return 1;
         } else {
+            if (filename) {
+                fprintf(stderr, "Error: Multiple source files specified\n");
+                fprintf(stderr, "Usage: %s [-arm64|-x64] source.c\n", argv[0]);
+                return 1;
+            }
             filename = argv[i];
         }
     }
@@ -1516,9 +1667,25 @@ int main(int argc, char **argv) {
         return 1;
     }
     
+    /* Initialize globals */
+    nglobals = 0;
+    nlocals = 0;
+    nfuncs = 0;
+    lineno = 1;
+    lab = 1;
+    wsp = 0;
+    
     emit_prolog();
     program();
     
     fclose(input);
+    
+    /* Check if main function was defined */
+    struct function *main_func = lookup_func("main");
+    if (!main_func || !main_func->defined) {
+        error("main function not defined");
+        return 1;
+    }
+    
     return 0;
 }
