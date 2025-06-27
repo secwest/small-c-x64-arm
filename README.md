@@ -20,7 +20,7 @@ A minimalist, self-bootstrapping C compiler in the spirit of Ron Cain's original
 
 ### Platform Support
 - **Linux**: x64 and ARM64
-- **Windows**: x64 (ARM64 planned)
+- **Windows**: x64 and ARM64
 
 ## Building
 
