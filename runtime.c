@@ -105,28 +105,27 @@ int strcpy(char *dest, char *src) {
 int printf(char *fmt, ...) {
     char **args;
     char *p;
-    int n;
     
-    args = &fmt + 1;  /* Point to first argument after format */
+    args = (char **)&fmt + 1;  /* Point to first argument after format */
     
     while (*fmt) {
         if (*fmt == '%') {
             fmt++;
             switch (*fmt) {
                 case 'd':
-                    printn(*(int *)args);
+                    printn(*((int *)args));
                     args++;
                     break;
                 case 'x':
-                    printh(*(int *)args);
+                    printh(*((int *)args));
                     args++;
                     break;
                 case 'c':
-                    putchar(*(int *)args);
+                    putchar(*((int *)args));
                     args++;
                     break;
                 case 's':
-                    p = *(char **)args;
+                    p = *args;
                     while (*p) {
                         putchar(*p++);
                     }
@@ -134,6 +133,10 @@ int printf(char *fmt, ...) {
                     break;
                 case '%':
                     putchar('%');
+                    break;
+                default:
+                    putchar('%');
+                    putchar(*fmt);
                     break;
             }
         } else {
