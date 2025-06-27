@@ -3,7 +3,17 @@
  * Minimal runtime support for Small-C compiled programs
  * 
  * This provides basic I/O and file operations in the spirit
- * of Ron Cain's original Small-C runtime from 1980
+ * of Ron Cain's original Small-C runtime from Dr. Dobb's Journal
+ * 
+ * Original publications:
+ * - "A Small C Compiler for the 8080's" Part 1 - Dr. Dobb's Journal #45 (May 1980)
+ * - "A Small C Compiler for the 8080's" Part 2 - Dr. Dobb's Journal #46 (June/July 1980)
+ * - "A Runtime Library for the Small C Compiler" - Dr. Dobb's Journal #48 (September 1980)
+ * - Scans available at: https://archive.org/details/dr_dobbs_journal_vol_05_201803
+ * - Original source: https://github.com/trcwm/smallc_v1
+ * 
+ * Note: The original runtime was written in 8080 assembly. This C version
+ * provides equivalent functionality for modern systems.
  */
 
 /* File descriptors */
