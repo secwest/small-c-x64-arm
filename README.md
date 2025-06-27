@@ -184,7 +184,7 @@ This compiler is ideal for:
 - Exploring self-bootstrapping concepts
 - Teaching compiler construction
 
-The entire compiler is under 1000 lines of readable C code, making it perfect for study and modification.
+The entire compiler is under 1200 lines of readable C code, making it perfect for study and modification.
 
 ## Historical Note
 
