@@ -196,6 +196,7 @@ runtime.c             - Runtime library (portable C)
 syscall_linux_x64.s   - Linux x64 system calls
 syscall_linux_arm64.s - Linux ARM64 system calls
 syscall_win_x64.s     - Windows x64 system calls
+syscall_win_arm64.s     - Windows ARM64 system calls
 Makefile              - Build configuration
 scc-build.sh          - Convenience build script
 test.c                - Test program
