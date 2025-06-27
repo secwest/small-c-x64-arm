@@ -47,7 +47,7 @@ After Ron Cain's original publication, the compiler evolved significantly:
 
 ### Platform Support
 - **Linux**: x64 and ARM64
-- **Windows**: x64 (ARM64 planned)
+- **Windows**: x64 and ARM64
 
 ## Building
 
