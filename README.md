@@ -1,6 +1,22 @@
 # Modern Small-C Compiler and Runtime
 
+![Dr. Dobb's Journal](https://raw.githubusercontent.com/secwest/small-c-x64-arm/refs/heads/main/Dr-Dobbs.jpg)
+
 A minimalist, self-bootstrapping C compiler in the spirit of Ron Cain's original Small-C from Dr. Dobb's Journal (May 1980). This implementation targets modern 64-bit architectures while maintaining the simplicity and educational value of the original.
+
+## Historical Background
+
+Ron Cain's Small-C was published in **Dr. Dobb's Journal of Computer Calisthenics & Orthodontia** in 1980:
+
+> 📚 **Original Small-C Articles**
+> - **Issue #45 (May 1980)**: "A Small C Compiler for the 8080's" - The original compiler
+> - **Issue #48 (September 1980)**: "A Runtime Library for the Small C Compiler" - Runtime support
+> 
+> 📖 **Read the original articles:**
+> - [Dr. Dobb's Journal Volume 5 (1980) on Internet Archive](https://archive.org/details/dr_dobbs_journal_vol_05_201803)
+> - [High-quality PDF scans at 6502.org](http://6502.org/documents/publications/dr_dobbs_journal/dr_dobbs_journal_vol_05.pdf)
+> 
+> These historic issues contain the complete source code listings that could be typed in by hand - a revolutionary concept that democratized compiler technology!
 
 ## Features
 
@@ -20,7 +36,7 @@ A minimalist, self-bootstrapping C compiler in the spirit of Ron Cain's original
 
 ### Platform Support
 - **Linux**: x64 and ARM64
-- **Windows**: x64 and ARM64
+- **Windows**: x64 (ARM64 planned)
 
 ## Building
 
@@ -184,11 +200,11 @@ This compiler is ideal for:
 - Exploring self-bootstrapping concepts
 - Teaching compiler construction
 
-The entire compiler is under 1200 lines of readable C code, making it perfect for study and modification.
+The entire compiler is under 1000 lines of readable C code, making it perfect for study and modification.
 
 ## Historical Note
 
-This implementation honors Ron Cain's original Small-C compiler published in Dr. Dobb's Journal #45 (May 1980). The original was a groundbreaking achievement - a self-compiling C compiler small enough to type in from a magazine listing. This modern version maintains that spirit while targeting contemporary 64-bit systems.
+This implementation honors Ron Cain's original Small-C compiler first published in Dr. Dobb's Journal in 1980 (see Historical Background section above for links to the original articles). The original was a groundbreaking achievement - a self-compiling C compiler small enough to type in from a magazine listing. This modern version maintains that spirit while targeting contemporary 64-bit systems.
 
 ## License
 
