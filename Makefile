@@ -33,22 +33,30 @@ SCC := ./scc
 ifeq ($(OS),linux)
     ifeq ($(ARCH),x64)
         SYSCALL_OBJ := syscall_linux_x64.o
+        SYSCALL_SRC := syscall_linux_x64.s
         AS_FLAGS := 
         LD_FLAGS := -static
+        SCC_ARCH := -x64
     else
         SYSCALL_OBJ := syscall_linux_arm64.o
+        SYSCALL_SRC := syscall_linux_arm64.s
         AS_FLAGS := 
         LD_FLAGS := -static
+        SCC_ARCH := -arm64
     endif
 else
     ifeq ($(ARCH),x64)
         SYSCALL_OBJ := syscall_win_x64.o
+        SYSCALL_SRC := syscall_win_x64.s
         AS_FLAGS := 
         LD_FLAGS := -lkernel32 -luser32
+        SCC_ARCH := -x64
     else
         SYSCALL_OBJ := syscall_win_arm64.o
+        SYSCALL_SRC := syscall_win_arm64.s
         AS_FLAGS := 
         LD_FLAGS := -lkernel32 -luser32
+        SCC_ARCH := -arm64
     endif
 endif
 
