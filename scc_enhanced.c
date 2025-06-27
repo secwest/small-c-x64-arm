@@ -1504,7 +1504,7 @@ void postfix(void) {
                 } else {
                     for (int i = arg_count - 1; i >= 0 && i < 8; i--) {
                         char reg[16];
-                        sprintf(reg, "x%d", i);
+                        snprintf(reg, sizeof(reg), "x%d", i);
                         pop(reg);
                     }
                 }
