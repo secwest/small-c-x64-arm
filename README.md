@@ -2,21 +2,32 @@
 
 ![Dr. Dobb's Journal](https://raw.githubusercontent.com/secwest/small-c-x64-arm/refs/heads/main/Dr-Dobbs.jpg)
 
-A minimalist, self-bootstrapping C compiler in the spirit of Ron Cain's original Small-C from Dr. Dobb's Journal (May 1980). This implementation targets modern 64-bit architectures while maintaining the simplicity and educational value of the original.
+A minimalist, self-bootstrapping C compiler in the spirit of Ron Cain's original Small-C from Dr. Dobb's Journal (May-June 1980). This implementation targets modern 64-bit architectures while maintaining the simplicity and educational value of the original.
 
 ## Historical Background
 
 Ron Cain's Small-C was published in **Dr. Dobb's Journal of Computer Calisthenics & Orthodontia** in 1980:
 
-> 📚 **Original Small-C Articles**
-> - **Issue #45 (May 1980)**: "A Small C Compiler for the 8080's" - The original compiler
+> 📚 **Original Small-C Publications**
+> - **Issue #45 (May 1980)**: "A Small C Compiler for the 8080's" - Part 1 of the compiler
+> - **Issue #46 (June/July 1980)**: Continuation and completion of the compiler listing
 > - **Issue #48 (September 1980)**: "A Runtime Library for the Small C Compiler" - Runtime support
 > 
 > 📖 **Read the original articles:**
 > - [Dr. Dobb's Journal Volume 5 (1980) on Internet Archive](https://archive.org/details/dr_dobbs_journal_vol_05_201803)
 > - [High-quality PDF scans at 6502.org](http://6502.org/documents/publications/dr_dobbs_journal/dr_dobbs_journal_vol_05.pdf)
 > 
+> 💻 **Original Source Code:**
+> - [Reconstructed Small-C v1.1 source on GitHub](https://github.com/trcwm/smallc_v1) - Faithful reconstruction from the magazine listings
+> 
 > These historic issues contain the complete source code listings that could be typed in by hand - a revolutionary concept that democratized compiler technology!
+
+### Evolution of Small-C
+
+After Ron Cain's original publication, the compiler evolved significantly:
+- **Small-C v2.0** (December 1982) - James E. Hendrix published an enhanced version in Dr. Dobb's Journal with added features like structures, Boolean operators, and code optimization
+- **The Small-C Handbook** (1984) - Hendrix wrote a comprehensive book documenting the enhanced compiler
+- This modern implementation stays true to Cain's original minimalist design while targeting 64-bit systems
 
 ## Features
 
@@ -204,7 +215,11 @@ The entire compiler is under 1000 lines of readable C code, making it perfect fo
 
 ## Historical Note
 
-This implementation honors Ron Cain's original Small-C compiler first published in Dr. Dobb's Journal in 1980 (see Historical Background section above for links to the original articles). The original was a groundbreaking achievement - a self-compiling C compiler small enough to type in from a magazine listing. This modern version maintains that spirit while targeting contemporary 64-bit systems.
+This implementation honors Ron Cain's original Small-C compiler first published in Dr. Dobb's Journal in 1980. The complete compiler listing spanned two issues due to its length, with the runtime library following later (see Historical Background section above for links to the original articles). 
+
+The original was a groundbreaking achievement - a self-compiling C compiler small enough to type in from a magazine listing. Cain noted in the article that the compiler "will compile and run under UNIX" and was designed to be portable. This modern version maintains that spirit while targeting contemporary 64-bit systems.
+
+Ron Cain developed Small-C at SRI International on a PDP 11/45 Unix system, with the explicit goal of creating a compiler simple enough for hobbyists to understand and modify. The fact that it was published as a type-in listing democratized compiler technology in an era when commercial compilers cost hundreds or thousands of dollars.
 
 ## License
 
