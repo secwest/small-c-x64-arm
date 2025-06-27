@@ -38,7 +38,7 @@
 | Warning messages | ✗ | ✓ |
 | Error recovery | Limited | Better |
 | **Code Quality** |
-| Lines of code | ~900 | ~1800 |
+| Lines of code | ~1100 | ~1800 |
 | Compilation speed | Very fast | Fast |
 | Self-bootstrapping | ✓ | ✓ |
 | Memory usage | Minimal | Low |
