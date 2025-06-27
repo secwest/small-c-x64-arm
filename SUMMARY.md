@@ -8,6 +8,15 @@ The Small-C compiler provides **identical functionality** on both Linux and Wind
 - **Platform-specific system calls** that provide the same interface
 - **Same build process** with platform detection
 
+## Historical Accuracy
+
+This implementation is based on Ron Cain's original Small-C published in Dr. Dobb's Journal:
+- **Issue #45 (May 1980)**: "A Small C Compiler for the 8080's" - Part 1
+- **Issue #46 (June/July 1980)**: "A Small C Compiler for the 8080's" - Part 2 (completion)
+- **Issue #48 (September 1980)**: "A Runtime Library for the Small C Compiler"
+- **Original source**: [GitHub - smallc_v1](https://github.com/trcwm/smallc_v1)
+- **Magazine scans**: [Internet Archive](https://archive.org/details/dr_dobbs_journal_vol_05_201803)
+
 ## Complete File List with Code IDs
 
 ### 🔧 Core Compiler Files
@@ -110,11 +119,18 @@ x86_64-w64-mingw32-ld syscall_win_x64.o runtime.o test.o -o test.exe
 - ✅ **Minimal** - No external dependencies
 
 ## The Small-C Philosophy
-Following Ron Cain's 1980 vision:
+Following Ron Cain's 1980 vision from Dr. Dobb's Journal:
 - Simple enough to type in from a magazine
 - Powerful enough to compile itself
 - Educational value over optimization
 - Portability through simplicity
 - Direct and understandable code generation
 
-This modern implementation maintains that philosophy while supporting contemporary 64-bit systems!
+The original articles appeared in:
+- **Dr. Dobb's Journal #45 (May 1980)**: "A Small C Compiler for the 8080's" - Part 1
+- **Dr. Dobb's Journal #46 (June/July 1980)**: "A Small C Compiler for the 8080's" - Part 2
+- **Dr. Dobb's Journal #48 (September 1980)**: "A Runtime Library for the Small C Compiler"
+- **[Available on Internet Archive](https://archive.org/details/dr_dobbs_journal_vol_05_201803)**
+- **[Original source reconstruction on GitHub](https://github.com/trcwm/smallc_v1)**
+
+Small-C evolved through James E. Hendrix's v2.0 (1982) which added many features, but this modern implementation maintains Cain's original minimalist philosophy while supporting contemporary 64-bit systems!
