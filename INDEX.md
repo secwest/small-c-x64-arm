@@ -1,153 +1,80 @@
-# Small-C Compiler - Complete File Index
+# Small-C Compiler - Code Quick Reference
 
-## Overview
-This is the complete file listing for the Modern Small-C Compiler project, supporting both Linux and Windows on x64 and ARM64 architectures.
+Use these Code IDs to access the complete source code for the Small-C compiler project.
 
-## Core Compiler Files
-
-### 1. **scc.c** - Basic Small-C Compiler
-- **Code ID**: `modern-small-c`
-- **Description**: The basic Small-C compiler (~900 lines) in the spirit of Ron Cain's original
-- **Features**: Minimal C subset, self-bootstrapping, direct assembly generation
-- **Language support**: int, char, pointers, arrays, basic control flow
-
-### 2. **scc_enhanced.c** - Enhanced Small-C Compiler
-- **Code ID**: `smallc-enhanced`
-- **Description**: Enhanced version (~1800 lines) with modern features
-- **Features**: Function parameters, local initialization, character literals, compound assignments, comments
-- **Additional**: Better error reporting with line numbers
+## Core Compilers
+- **Basic Compiler**: `modern-small-c` - scc.c
+- **Enhanced Compiler**: `smallc-enhanced` - scc_enhanced.c
 
 ## Runtime Library
+- **Runtime Library**: `smallc-runtime` - runtime.c
 
-### 3. **runtime.c** - Universal Runtime Library
-- **Code ID**: `smallc-runtime`
-- **Description**: Portable runtime library for all platforms
-- **Functions**: 
-  - I/O: putchar, getchar, puts, gets, printf
-  - Files: open, creat, close, read, write
-  - Strings: strlen, strcmp, strcpy
-  - Memory: memset, memcpy
-  - Utilities: atoi, abs, min, max, exit
+## Linux System Calls
+- **Linux x64**: `syscall-linux-x64` - syscall_linux_x64.s
+- **Linux ARM64**: `syscall-linux-arm64` - syscall_linux_arm64.s
 
-## Platform-Specific System Calls
-
-### 4. **syscall_linux_x64.s** - Linux x64 System Calls
-- **Code ID**: `syscall-linux-x64`
-- **Description**: Linux x64 system call wrappers and program entry point
-- **Implements**: _sys_read, _sys_write, _sys_open, _sys_close, _sys_exit, _start
-
-### 5. **syscall_linux_arm64.s** - Linux ARM64 System Calls
-- **Code ID**: `syscall-linux-arm64`
-- **Description**: Linux ARM64 system call wrappers and program entry point
-- **Implements**: Same as x64 but for ARM64 architecture
-
-### 6. **syscall_win_x64.s** - Windows x64 System Calls
-- **Code ID**: `syscall-win-x64`
-- **Description**: Windows x64 API wrappers using Win32 functions
-- **Implements**: Windows API calls (ReadFile, WriteFile, CreateFileA, etc.)
-
-### 7. **syscall_win_arm64.s** - Windows ARM64 System Calls
-- **Code ID**: `syscall-win-arm64`
-- **Description**: Windows ARM64 API wrappers (fully implemented)
-- **Implements**: Same Windows APIs for ARM64 architecture
+## Windows System Calls
+- **Windows x64**: `syscall-win-x64` - syscall_win_x64.s
+- **Windows ARM64**: `syscall-win-arm64` - syscall_win_arm64.s
 
 ## Build System
-
-### 8. **Makefile** - Cross-Platform Build Configuration
-- **Code ID**: `smallc-makefile`
-- **Description**: Automatic platform detection and building
-- **Supports**: Linux/Windows, x64/ARM64 auto-detection
-
-### 9. **scc-build.sh** - Build Script
-- **Code ID**: `smallc-build`
-- **Description**: Convenient shell script for building Small-C programs
-- **Usage**: `./scc-build.sh program.c [output_name]`
+- **Makefile**: `smallc-makefile` - Makefile
+- **Build Script**: `smallc-build` - scc-build.sh
 
 ## Documentation
-
-### 10. **README.md** - Main Documentation
-- **Code ID**: `smallc-readme`
-- **Description**: Complete project overview, features, and usage instructions
-- **Contents**: Introduction, features, building, usage, examples
-
-### 11. **BUILD_GUIDE.md** - Detailed Build Guide
-- **Code ID**: `smallc-buildguide`
-- **Description**: Comprehensive build and testing instructions
-- **Contents**: Build steps, self-bootstrapping, cross-platform building, debugging
-
-### 12. **Compiler Comparison** - Feature Analysis
-- **Code ID**: `smallc-comparison`
-- **Description**: Detailed comparison between basic and enhanced compilers
-- **Contents**: Feature tables, performance metrics, use cases
+- **README**: `smallc-readme` - README.md
+- **Build Guide**: `smallc-buildguide` - BUILD_GUIDE.md
+- **History**: `smallc-history` - HISTORY.md
+- **Comparison**: `smallc-comparison` - Feature comparison
+- **File Index**: `smallc-file-index` - Complete file listing
+- **This Reference**: `smallc-Code-links` - Quick Code reference
 
 ## Example Programs
+- **Test Program**: `smallc-test` - test.c
+- **Enhanced Demo**: `smallc-demo-enhanced` - demo_enhanced.c
+- **Calculator App**: `smallc-complete-app` - calculator.c
+- **Simple Example**: `small-c-example` - example.c
 
-### 13. **test.c** - Runtime Test Program
-- **Code ID**: `smallc-test`
-- **Description**: Comprehensive test of all runtime library functions
-- **Tests**: I/O, strings, files, memory, utilities
+## Download All Files
 
-### 14. **demo_enhanced.c** - Enhanced Features Demo
-- **Code ID**: `smallc-demo-enhanced`
-- **Description**: Demonstrates enhanced compiler features
-- **Shows**: Parameters, initialization, sorting, recursion
+To get started with the Small-C compiler:
 
-### 15. **calculator.c** - Complete Application
-- **Code ID**: `smallc-complete-app`
-- **Description**: Interactive calculator with expression parser
-- **Features**: Arithmetic operations, memory storage, error handling
+1. Save all the core files:
+   - scc.c (basic compiler)
+   - scc_enhanced.c (enhanced compiler)
+   - runtime.c
 
-### 16. **example.c** - Simple Example
-- **Code ID**: `small-c-example`
-- **Description**: Basic example showing Small-C capabilities
-- **Features**: String operations, loops, Fibonacci
+2. Save the appropriate system call files for your platform:
+   - Linux: syscall_linux_x64.s or syscall_linux_arm64.s
+   - Windows: syscall_win_x64.s or syscall_win_arm64.s
 
-## Platform Support Summary
+3. Save the build files:
+   - Makefile
+   - scc-build.sh (make it executable with `chmod +x`)
 
-| Component | Linux x64 | Linux ARM64 | Windows x64 | Windows ARM64 |
-|-----------|-----------|-------------|-------------|---------------|
-| Compiler | ✓ scc.c, scc_enhanced.c | ✓ scc.c, scc_enhanced.c | ✓ scc.c, scc_enhanced.c | ✓ scc.c, scc_enhanced.c |
-| Runtime | ✓ runtime.c | ✓ runtime.c | ✓ runtime.c | ✓ runtime.c |
-| Syscalls | ✓ syscall_linux_x64.s | ✓ syscall_linux_arm64.s | ✓ syscall_win_x64.s | ✓ syscall_win_arm64.s |
+4. Save example programs to test:
+   - test.c
+   - calculator.c
 
-## Quick Start Commands
+5. Build everything:
+   ```bash
+   make
+   ./scc-build.sh test.c
+   ./test
+   ```
 
-### Linux Build
-```bash
-# Build everything
-make
+## Platform Notes
 
-# Compile a program (Linux x64)
-./scc program.c > program.s
-as program.s -o program.o
-ld -static syscall_linux_x64.o runtime.o program.o -o program
+### Linux Support
+- Full support for x64 and ARM64
+- Direct system calls for maximum efficiency
+- Static linking by default
+- Tested on Ubuntu, Debian, Fedora, Arch
 
-# Or use the build script
-./scc-build.sh program.c
-```
+### Windows Support  
+- Full support for x64 and ARM64
+- Uses Windows API (kernel32.dll)
+- Requires MinGW-w64 toolchain for cross-compilation
+- Tested on Windows 10/11
 
-### Windows Build
-```bash
-# Compile for Windows x64
-./scc program.c > program.s
-x86_64-w64-mingw32-as program.s -o program.o
-x86_64-w64-mingw32-ld syscall_win_x64.o runtime.o program.o -o program.exe
-
-# For Windows ARM64
-./scc -arm64 program.c > program.s
-aarch64-w64-mingw32-as program.s -o program.o
-aarch64-w64-mingw32-ld syscall_win_arm64.o runtime.o program.o -o program.exe
-```
-
-## File Sizes (Approximate)
-- scc (compiled): ~50KB
-- scc_enhanced (compiled): ~80KB
-- runtime.o: ~20KB
-- syscall_*.o: ~2KB each
-- Total project: <1MB
-
-## Notes
-- All files are self-contained and have no external dependencies
-- The compilers can compile themselves (self-bootstrapping)
-- The runtime works identically on all platforms
-- Assembly files are platform-specific but provide the same interface
+Both platforms use the exact same compiler and runtime library code - only the system call layer differs.
