@@ -906,6 +906,11 @@ void statement(void) {
                 if (paren > 0) lptr++;
             }
             
+            if (!*lptr) {
+                error("Unexpected end of file in for loop");
+                break;
+            }
+            
             if (token != ')') error("Expected )");
             token = gettoken();
             
