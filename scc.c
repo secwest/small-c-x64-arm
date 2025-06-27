@@ -13,7 +13,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include <stdarg.h>
 
 /* Configuration */
 #define NAMESIZE 32
@@ -103,7 +102,7 @@ struct symbol *add_symbol(char *name, int type, int size);
 void emit_prolog(void) {
     emit(".text");
     
-    /* External functions from runtime library */
+    /* External function declarations for runtime library */
     emit(".extern putchar");
     emit(".extern getchar");
     emit(".extern puts");
@@ -152,6 +151,7 @@ void error(char *msg) {
     exit(1);
 }
 
+#include <stdarg.h>
 void emit(char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
@@ -193,6 +193,28 @@ int gettoken(void) {
         if (!fgets(line, LINESIZE, input)) return T_EOF;
         lptr = line;
         return gettoken();
+    }
+    
+    /* Character constants */
+    if (*lptr == '\'') {
+        lptr++;
+        if (*lptr == '\\') {
+            lptr++;
+            switch (*lptr) {
+                case 'n': tokval = '\n'; break;
+                case 't': tokval = '\t'; break;
+                case 'r': tokval = '\r'; break;
+                case '\\': tokval = '\\'; break;
+                case '\'': tokval = '\''; break;
+                case '0': tokval = '\0'; break;
+                default: tokval = *lptr;
+            }
+            lptr++;
+        } else {
+            tokval = *lptr++;
+        }
+        if (*lptr == '\'') lptr++;
+        return T_NUMBER;  /* Treat as number */
     }
     
     /* Single character tokens */
@@ -323,11 +345,12 @@ void program(void) {
         
         /* Function or global variable */
         if (token == '(') {
-            /* Function definition */
+            token = gettoken();
+            
+            /* Emit function label */
             emit(".globl %s", name);
             emit("%s:", name);
             
-            token = gettoken();
             function();
         } else {
             /* Global variable */
@@ -924,6 +947,72 @@ void postfix(void) {
                 emit("  add x0, x1, x0");
                 emit("  ldr x0, [x0]");
             }
+        } else if (token == '(') {
+            /* Function call */
+            char fname[NAMESIZE];
+            struct symbol *sym = lookup(tokstr);
+            if (sym) {
+                /* Calling through function pointer - not supported */
+                error("Function pointers not supported");
+            }
+            strcpy(fname, tokstr);
+            
+            token = gettoken();
+            
+            /* Count arguments */
+            int nargs = 0;
+            if (token != ')') {
+                nargs = 1;
+                expression();
+                while (token == ',') {
+                    push();
+                    token = gettoken();
+                    expression();
+                    nargs++;
+                }
+                
+                /* Pop arguments into registers (reverse order) */
+                if (target == TARGET_X64) {
+                    /* x64 calling convention: RDI, RSI, RDX, RCX, R8, R9 */
+                    if (nargs > 6) error("Too many arguments");
+                    char *regs[] = {"%rdi", "%rsi", "%rdx", "%rcx", "%r8", "%r9"};
+                    
+                    /* Last argument is already in RAX */
+                    if (nargs > 1) {
+                        emit("  movq %%rax, %%r10");  /* Save last arg */
+                        for (int i = nargs - 2; i >= 0; i--) {
+                            pop(regs[i]);
+                        }
+                        emit("  movq %%r10, %s", regs[nargs - 1]);
+                    } else {
+                        emit("  movq %%rax, %%rdi");
+                    }
+                } else {
+                    /* ARM64 calling convention: X0-X7 */
+                    if (nargs > 8) error("Too many arguments");
+                    
+                    /* Last argument is already in X0 */
+                    if (nargs > 1) {
+                        emit("  mov x9, x0");  /* Save last arg */
+                        for (int i = nargs - 2; i >= 0; i--) {
+                            char reg[8];
+                            sprintf(reg, "x%d", i);
+                            pop(reg);
+                        }
+                        emit("  mov x%d, x9", nargs - 1);
+                    }
+                }
+            }
+            
+            if (token != ')') error("Expected )");
+            token = gettoken();
+            
+            /* Call the function */
+            if (target == TARGET_X64) {
+                emit("  call %s", fname);
+            } else {
+                emit("  bl %s", fname);
+            }
         } else if (token == T_INC || token == T_DEC) {
             int op = token;
             token = gettoken();
@@ -976,90 +1065,53 @@ void primary(void) {
             
         case T_IDENT:
             {
-                struct symbol *sym = lookup(tokstr);
                 char name[NAMESIZE];
                 strcpy(name, tokstr);
+                struct symbol *sym = lookup(tokstr);
                 token = gettoken();
                 
-                /* Check if it's a function call */
+                /* Check if this is a function call */
                 if (token == '(') {
-                    /* Function call */
-                    int nargs = 0;
-                    token = gettoken();
-                    
-                    /* Handle arguments */
-                    if (token != ')') {
-                        do {
-                            expression();
-                            push();
-                            nargs++;
-                            if (token == ',') {
-                                token = gettoken();
-                            }
-                        } while (token == ',');
-                    }
-                    
-                    if (token != ')') error("Expected )");
-                    token = gettoken();
-                    
-                    /* Pop arguments in reverse order for calling convention */
-                    if (target == TARGET_X64) {
-                        /* x64 calling convention: rdi, rsi, rdx, rcx, r8, r9 */
-                        char *regs[] = {"%rdi", "%rsi", "%rdx", "%rcx", "%r8", "%r9"};
-                        int i;
-                        for (i = nargs - 1; i >= 0 && i < 6; i--) {
-                            pop(regs[i]);
-                        }
-                        /* Additional args would go on stack */
-                    } else {
-                        /* ARM64 calling convention: x0-x7 */
-                        int i;
-                        for (i = nargs - 1; i >= 0 && i < 8; i--) {
-                            char reg[16];
-                            sprintf(reg, "x%d", i);
-                            pop(reg);
-                        }
-                    }
-                    
-                    /* Call the function */
-                    if (target == TARGET_X64) {
-                        emit("  call %s", name);
-                    } else {
-                        emit("  bl %s", name);
-                    }
-                } else if (!sym) {
+                    /* Put the name back for postfix() to handle */
+                    strcpy(tokstr, name);
+                    postfix();
+                    return;
+                }
+                
+                if (!sym) {
+                    /* Might be an external function used as a value */
+                    /* For now, just error out */
                     error("Undefined variable");
-                } else {
-                    /* Variable access */
-                    if (sym->isarray) {
-                        if (sym->offset < 0) {
-                            if (target == TARGET_X64) {
-                                emit("  leaq %d(%%rbp), %%rax", sym->offset);
-                            } else {
-                                emit("  add x0, x29, #%d", sym->offset);
-                            }
+                }
+                
+                if (sym->isarray) {
+                    if (sym->offset < 0) {
+                        if (target == TARGET_X64) {
+                            emit("  leaq %d(%%rbp), %%rax", sym->offset);
                         } else {
-                            if (target == TARGET_X64) {
-                                emit("  movq $%s, %%rax", sym->name);
-                            } else {
-                                emit("  adrp x0, %s", sym->name);
-                                emit("  add x0, x0, :lo12:%s", sym->name);
-                            }
+                            emit("  add x0, x29, #%d", sym->offset);
                         }
                     } else {
-                        if (sym->offset < 0) {
-                            if (target == TARGET_X64) {
-                                emit("  movq %d(%%rbp), %%rax", sym->offset);
-                            } else {
-                                emit("  ldr x0, [x29, #%d]", sym->offset);
-                            }
+                        if (target == TARGET_X64) {
+                            emit("  movq $%s, %%rax", sym->name);
                         } else {
-                            if (target == TARGET_X64) {
-                                emit("  movq %s(%%rip), %%rax", sym->name);
-                            } else {
-                                emit("  adrp x0, %s", sym->name);
-                                emit("  ldr x0, [x0, :lo12:%s]", sym->name);
-                            }
+                            emit("  adrp x0, %s", sym->name);
+                            emit("  add x0, x0, :lo12:%s", sym->name);
+                        }
+                    }
+                } else {
+                    if (sym->offset < 0) {
+                        if (target == TARGET_X64) {
+                            emit("  movq %d(%%rbp), %%rax", sym->offset);
+                        } else {
+                            emit("  ldr x0, [x29, #%d]", sym->offset);
+                        }
+                    } else {
+                        if (target == TARGET_X64) {
+                            emit("  movq %s(%%rip), %%rax", sym->name);
+                        } else {
+                            emit("  adrp x0, %s", sym->name);
+                            emit("  ldr x0, [x0, :lo12:%s]", sym->name);
                         }
                     }
                 }
