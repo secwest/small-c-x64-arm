@@ -1,13 +1,23 @@
 /*
  * Enhanced Modern Small-C Compiler
- * Based on Ron Cain's original Small-C from Dr. Dobb's Journal, May 1980
+ * Based on Ron Cain's original Small-C from Dr. Dobb's Journal
  * 
- * This version includes:
+ * Original publications by Ron Cain:
+ * - "A Small C Compiler for the 8080's" Part 1 - Dr. Dobb's Journal #45 (May 1980)
+ * - "A Small C Compiler for the 8080's" Part 2 - Dr. Dobb's Journal #46 (June/July 1980)
+ * - "A Runtime Library for the Small C Compiler" - Dr. Dobb's Journal #48 (September 1980)
+ * - Scans available at: https://archive.org/details/dr_dobbs_journal_vol_05_201803
+ * - Reconstructed source: https://github.com/trcwm/smallc_v1
+ * 
+ * This enhanced version includes features similar to James E. Hendrix's Small-C v2.0
+ * (published in Dr. Dobb's Journal, December 1982):
  * - Better error reporting with line numbers
  * - Function parameter support
  * - Local variable initialization
  * - Improved code generation
  * - Better handling of character literals
+ * - Comments (// and /* */)
+ * - Compound assignment operators
  * 
  * Still maintains the simplicity and self-bootstrapping capability
  */
