@@ -38,7 +38,7 @@
 | Warning messages | ✗ | ✓ |
 | Error recovery | Limited | Better |
 | **Code Quality** |
-| Lines of code | ~1100 | ~1800 |
+| Lines of code | ~900 | ~1800 |
 | Compilation speed | Very fast | Fast |
 | Self-bootstrapping | ✓ | ✓ |
 | Memory usage | Minimal | Low |
@@ -137,12 +137,44 @@ Both compilers use the same runtime library providing:
 
 ## Historical Context
 
-Ron Cain's original Small-C (1980) was revolutionary because:
-- First self-compiling compiler in a magazine
-- Small enough to type in by hand
-- Demonstrated compiler construction simply
-- Inspired countless programmers
-- Started the "tiny compiler" movement
+Ron Cain's original Small-C was published in Dr. Dobb's Journal across two issues in 1980:
+- **Issue #45 (May 1980)**: "A Small C Compiler for the 8080's" - Part 1
+- **Issue #46 (June/July 1980)**: "A Small C Compiler for the 8080's" - Part 2 (completion)
+- **Issue #48 (September 1980)**: "A Runtime Library for the Small C Compiler" - Runtime support
+
+These articles are available in the [Dr. Dobb's Journal Volume 5 archive on Internet Archive](https://archive.org/details/dr_dobbs_journal_vol_05_201803).
+
+The original source has been faithfully reconstructed and is available at [GitHub - smallc_v1](https://github.com/trcwm/smallc_v1).
+
+### Evolution of Small-C
+
+The compiler evolved through several versions:
+
+1. **Small-C v1.1 (1980)** - Ron Cain's original
+   - Single-pass recursive descent compiler
+   - Minimal feature set: int, char, pointers, arrays
+   - No structs, floats, or preprocessing
+   - Self-bootstrapping capability
+   - Known bugs: Function arguments must be declared in order (fixed in later versions)
+
+2. **Small-C v2.0 (1982)** - James E. Hendrix's enhanced version
+   - Published in Dr. Dobb's Journal (December 1982)
+   - Added: code optimization, data initialization, extern storage class
+   - Added: for/do-while/switch/goto statements, Boolean operators
+   - Block local variables and other improvements
+
+3. **The Small-C Handbook (1984)** - Hendrix documented the enhanced compiler
+   - Comprehensive guide to Small-C v2.x
+   - Included CP/M runtime library
+   - Became the standard reference
+
+### This Implementation
+
+Our modern implementation follows two paths:
+- **Basic compiler (scc.c)**: Stays true to Cain's v1.1 minimalist design
+- **Enhanced compiler (scc_enhanced.c)**: Incorporates v2.0-style improvements
+
+Both target modern 64-bit architectures while maintaining the educational value and self-bootstrapping capability that made Small-C revolutionary.
 
 This modern version maintains that spirit while:
 - Supporting 64-bit architectures
